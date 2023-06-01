@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -262,6 +263,13 @@ func DeployImage(ctx context.Context,
 	deployImageRequest *v1.DeployImageRequest,
 	versionData *v1.VersionData,
 ) error {
+	test, err := json.Marshal(deployImageRequest)
+	if err != nil {
+		return err
+	}
+	str1 := string(test)
+	log.Info().Str("json", str1).Msg("here comes the deploy request")
+
 	containerName := getContainerName(deployImageRequest)
 	cfg := grpc.GetConfigFromContext(ctx).(*config.Configuration)
 
@@ -273,27 +281,21 @@ func DeployImage(ctx context.Context,
 	if err != nil {
 		return fmt.Errorf("deployment failed, image name error: %w", err)
 	}
-
 	log.Debug().Str("name", imageName).Str("full", expandedImageName).Msg("Image name parsed")
-
 	logDeployInfo(dog, deployImageRequest, expandedImageName, containerName)
-
 	envMap := MergeStringMapUnique(deployImageRequest.InstanceConfig.Environment, deployImageRequest.ContainerConfig.Environment)
 	secret, err := crypt.DecryptSecrets(deployImageRequest.ContainerConfig.Secrets, &cfg.CommonConfiguration)
 	if err != nil {
 		return fmt.Errorf("deployment failed, secret error: %w", err)
 	}
-
 	envList := EnvMapToSlice(MergeStringMapUnique(envMap, mapper.ByteMapToStringMap(secret)))
 	mountList := buildMountList(cfg, dog, deployImageRequest)
-
 	matchedContainer, err := dockerHelper.GetContainerByName(ctx, containerName)
 	if err != nil {
 		dog.WriteContainerState(common.ContainerState_CONTAINER_STATE_UNSPECIFIED,
 			err.Error(), fmt.Sprintf("Failed to find container: %s", containerName))
 		return err
 	}
-
 	if matchedContainer != nil {
 		dog.WriteContainerState(mapper.MapDockerStateToCruxContainerState(matchedContainer.State), matchedContainer.State)
 
@@ -305,14 +307,12 @@ func DeployImage(ctx context.Context,
 			return err
 		}
 	}
-
 	builder := containerbuilder.NewDockerBuilder(ctx)
 	networkMode, networks := setNetwork(deployImageRequest)
 	labels, err := setImageLabels(expandedImageName, deployImageRequest, cfg)
 	if err != nil {
 		return fmt.Errorf("error building lables: %w", err)
 	}
-
 	builder.WithImage(expandedImageName).
 		WithName(containerName).
 		WithMountPoints(mountList).

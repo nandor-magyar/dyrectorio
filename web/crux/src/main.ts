@@ -35,6 +35,9 @@ const loadGrpcOptions = (portEnv: string): GrpcOptions => {
 }
 
 const bootstrap = async () => {
+  console.info('HEHE:')
+  console.info(process.env)
+
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
     // Using Nestjs Logger Service for default logging

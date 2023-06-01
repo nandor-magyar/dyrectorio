@@ -113,6 +113,9 @@ export default class Deployment {
       instance: null,
     })
 
+    console.info('here comes the deployment:')
+    console.info(JSON.stringify(this.request))
+
     commandChannel.next({
       deploy: this.request,
     } as AgentCommand)

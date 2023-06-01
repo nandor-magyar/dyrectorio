@@ -46,6 +46,10 @@ export const deployWithDagent = async (
     await page.goto(projectUrl(projectId))
   }
 
+  setTimeout(() => {
+    exec('docker logs dagent', logCmdOutput)
+  }, 15000)
+
   await page.locator('button:has-text("Add deployment")').click()
 
   await page.waitForSelector(`button:has-text("${DAGENT_NODE}")`)
@@ -82,9 +86,7 @@ export const deployWithDagent = async (
 }
 
 const logCmdOutput = (err: Error, stdOut: string, stdErr: string, logStdOut?: boolean) => {
-  if (logStdOut) {
-    console.info(stdOut)
-  }
+  console.info(stdOut)
 
   if (err) {
     console.error(err)

@@ -435,7 +435,7 @@ export default class AgentService {
     this.agents.set(agent.id, agent)
     connection.status().subscribe(it => this.onAgentConnectionStatusChange(agent, it))
 
-    this.logger.log(`Agent joined with id: ${request.id}, key: ${!!agent.publicKey}`)
+    this.logger.log(`Agent joined with id: ${request.id}, version: ${request.version}, key: ${!!agent.publicKey}`)
     this.agentCount.inc()
     this.logServiceInfo()
 

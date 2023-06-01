@@ -93,6 +93,9 @@ export default class AgentInstaller {
       agentImageTag,
     }
 
+    console.info('INSTALL PARAMS:')
+    console.info(JSON.stringify(installScriptParams))
+
     return this.scriptCompiler.compile(installScriptParams)
   }
 
